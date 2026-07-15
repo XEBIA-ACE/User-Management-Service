@@ -41,6 +41,16 @@ jobs:
       with:
         sarif_file: snyk-sca-0.sarif
         category: snyk-sca-0
+    - name: Snyk SCA scan - app/package.json
+      run: snyk test --severity-threshold=high --file=package.json --sarif-file-output="$GITHUB_WORKSPACE/snyk-sca-1.sarif"
+      working-directory: app
+    - name: Upload snyk-sca-1 SARIF results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk-sca-1.sarif') != ''
+      continue-on-error: true
+      with:
+        sarif_file: snyk-sca-1.sarif
+        category: snyk-sca-1
   container:
     runs-on: ubuntu-latest
     steps:
@@ -83,6 +93,22 @@ jobs:
       with:
         sarif_file: snyk-sast.sarif
         category: snyk-sast
+  iac:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Snyk CLI
+      run: npm install -g snyk && snyk auth $SNYK_TOKEN
+    - name: Snyk IaC scan
+      run: snyk iac test --severity-threshold=high --sarif-file-output=snyk-iac.sarif
+    - name: Upload snyk-iac SARIF results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() && hashFiles('snyk-iac.sarif') != ''
+      continue-on-error: true
+      with:
+        sarif_file: snyk-iac.sarif
+        category: snyk-iac
   sbom:
     runs-on: ubuntu-latest
     steps:
